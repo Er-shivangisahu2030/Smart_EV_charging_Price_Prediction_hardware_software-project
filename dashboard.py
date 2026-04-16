@@ -66,7 +66,6 @@ st.markdown("### Real-Time Dynamic Pricing using AI + IoT")
 # Load Model
 # --------------------------------------------
 model = joblib.load("models/pricing_model.pkl")
-)
 
 # --------------------------------------------
 # Sidebar Inputs
