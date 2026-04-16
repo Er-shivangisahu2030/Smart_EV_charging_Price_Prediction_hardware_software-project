@@ -1,0 +1,125 @@
+import pandas as pd
+import random
+
+# Base manual dataset for one day
+# Format:
+# time_hour, voltage_V, current_A, power_factor, power_W,
+# energy_kWh, demand_level, grid_load, price_rs_per_kWh
+
+base_data = [
+    [0,231,0.28,0.82,65,0.06,1,0.04,4.0],
+    [1,230,0.30,0.83,69,0.07,1,0.05,4.1],
+    [2,230,0.32,0.84,74,0.07,1,0.05,4.2],
+    [3,231,0.31,0.84,72,0.07,1,0.05,4.1],
+    [4,232,0.30,0.85,70,0.07,1,0.05,4.1],
+    [5,230,0.36,0.85,83,0.08,2,0.06,4.8],
+    [6,229,0.45,0.86,103,0.10,2,0.07,5.5],
+    [7,228,0.55,0.87,125,0.12,3,0.08,6.0],
+    [8,228,0.65,0.88,148,0.15,3,0.10,6.5],
+    [9,229,0.68,0.88,156,0.16,4,0.10,6.8],
+    [10,230,0.72,0.89,165,0.18,4,0.11,7.2],
+    [11,230,0.78,0.90,179,0.20,5,0.12,7.6],
+    [12,231,0.85,0.91,196,0.22,5,0.13,8.0],
+    [13,230,0.88,0.91,203,0.24,6,0.14,8.5],
+    [14,229,0.92,0.92,211,0.26,6,0.14,9.0],
+    [15,228,0.98,0.93,224,0.28,7,0.15,9.8],
+    [16,227,1.05,0.93,238,0.31,7,0.16,10.5],
+    [17,226,1.15,0.94,260,0.34,8,0.17,11.2],
+    [18,226,1.25,0.95,283,0.38,8,0.19,12.0],
+    [19,225,1.40,0.96,315,0.45,9,0.21,13.5],
+    [20,226,1.35,0.95,305,0.52,9,0.20,13.0],
+    [21,227,1.20,0.94,270,0.58,8,0.18,11.5],
+    [22,228,1.00,0.92,225,0.63,7,0.15,10.0],
+    [23,229,0.75,0.90,170,0.67,5,0.11,8.5]
+]
+
+# Plant capacity in watts
+plant_capacity = 1500
+
+# Store full dataset
+full_data = []
+
+# Generate 60 days
+for day in range(1, 61):
+
+    cumulative_energy = 0
+
+    for row in base_data:
+        time_hour = row[0]
+
+        # Slight variation for realism
+        voltage_V = row[1] + random.randint(-2, 2)
+        current_A = round(row[2] + random.uniform(-0.05, 0.05), 2)
+        power_factor = round(row[3] + random.uniform(-0.02, 0.02), 2)
+
+        # Keep power factor in safe range
+        power_factor = max(0.75, min(power_factor, 0.98))
+
+        # Calculate power using AC formula
+        power_W = round(voltage_V * current_A * power_factor, 2)
+
+        # Calculate energy
+        energy_kWh = round(power_W / 1000, 3)
+
+        # Update cumulative energy
+        cumulative_energy += energy_kWh
+
+        # Grid load
+        grid_load = round(power_W / plant_capacity, 2)
+
+        # Demand level based on grid load
+        if grid_load < 0.10:
+            demand_level = random.randint(1, 3)
+        elif grid_load < 0.15:
+            demand_level = random.randint(4, 6)
+        elif grid_load < 0.20:
+            demand_level = random.randint(7, 8)
+        else:
+            demand_level = random.randint(9, 10)
+
+        # Peak hour
+        peak_hour = 1 if 17 <= time_hour <= 21 else 0
+
+        # Price formula
+        price_rs_per_kWh = round(
+            6.5 + (demand_level * 0.5) + (grid_load * 10),
+            2
+        )
+
+        # Save row
+        full_data.append([
+            day,
+            time_hour,
+            voltage_V,
+            current_A,
+            power_factor,
+            power_W,
+            energy_kWh,
+            round(cumulative_energy, 3),
+            demand_level,
+            grid_load,
+            peak_hour,
+            price_rs_per_kWh
+        ])
+
+# Create DataFrame
+df = pd.DataFrame(full_data, columns=[
+    "day",
+    "time_hour",
+    "voltage_V",
+    "current_A",
+    "power_factor",
+    "power_W",
+    "energy_kWh",
+    "cumulative_energy_kWh",
+    "demand_level",
+    "grid_load",
+    "peak_hour",
+    "price_rs_per_kWh"
+])
+
+# Save CSV
+df.to_csv("ev_dynamic_pricing_60days.csv", index=False)
+
+print("CSV created successfully!")
+print(df.head(30))
