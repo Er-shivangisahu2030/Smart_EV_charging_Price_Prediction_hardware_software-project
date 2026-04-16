@@ -65,8 +65,7 @@ st.markdown("### Real-Time Dynamic Pricing using AI + IoT")
 # --------------------------------------------
 # Load Model
 # --------------------------------------------
-model = joblib.load(
-    r"E:\\PROJECT FILE\\PROJECT 16 - Smart_EV_charging\\models\\pricing_model.pkl"
+model = joblib.load("models/pricing_model.pkl")
 )
 
 # --------------------------------------------
